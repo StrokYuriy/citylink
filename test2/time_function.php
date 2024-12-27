@@ -2,10 +2,9 @@
 
 function timeValidate($timeInt)
 {
-    if (preg_match('/^[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]/', $timeInt)) {
+    if (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9]/', $timeInt)) {
         return true;
     }
-    return false;
 }
 
 function timeOverlap($overlap)
@@ -37,10 +36,13 @@ function timeOverlap($overlap)
         if ($timeStart > $listEnd && $timeEnd < $listStart) {
             return true;
         }
-    }return false;
+    } return false;
 }
 
-$d = timeOverlap('23:10-01:20');
-var_export($d);
-
-
+$time = '23:10-01:20';
+if (timeValidate($time)) {
+    $d = timeOverlap($time);
+    return true;
+} else {
+    return false;
+}
