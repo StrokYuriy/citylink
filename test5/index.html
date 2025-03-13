@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Игра</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.1.1/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.1.1/js/tabulator.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+    <div class="reg-form">
+        <h1>"Олимпиада"</h1>
+    </div>
+</header>
+<section>
+    <div class="container">
+        <form id="searchForm" enctype="text/plain">
+            <div class="mb-3">
+                <label class="form-label">"Участники"</label>
+                <input id="playerNames" type="text" class="form-control" placeholder="Введите имена участников через запятую">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="sendNames()">Играть</button>
+        </form>
+    </div>
+    <br>
+    <div class="container">
+        <div id="example-table"></div>
+    </div>
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Ошибка</h2>
+            <p id="errorMessage">Произошла ошибка!</p>
+        </div>
+    </div>
+</section>
+<script>
+    $(document).ready(function() {
+        $('#playerNames').keypress(function(enter) {
+            if (enter.which === 13) {
+                enter.preventDefault();
+                sendNames();
+            }
+        });
+    });
+
+    let tabulator;
+
+    function showError(message) {
+        const modal = document.getElementById("errorModal");
+        const errorMessage = document.getElementById("errorMessage");
+        errorMessage.textContent = message;
+        modal.style.display = "block";
+    }
+    function closeModal() {
+        const modal = document.getElementById("errorModal");
+        modal.style.display = "none";
+    }
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    window.addEventListener("click", function (event) {
+        const modal = document.getElementById("errorModal");
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+    function sendNames() {
+        const text = document.getElementById('playerNames').value;
+        if (!text) {
+            showError("Введите хотя бы одно имя участника.");
+            return;
+        }
+        const names = text.split(',').map(name => name.trim()).filter(name => /^[а-яА-ЯёЁ\s]+$/.test(name));
+        if (names.length === 0) {
+            showError("Используйте только кириллические буквы и запятые.");
+            return;
+        }
+        console.log(names);
+        $.ajax({
+            url: 'controller.php',
+            type: 'POST',
+            data: JSON.stringify(names),
+            contentType: 'application/json',
+            success: function (json) {
+                console.log(typeof json);
+
+                let games = JSON.parse(JSON.stringify(json))
+
+                if (!tabulator) {
+                    tabulator = new Tabulator('#example-table', {
+                        data: games,
+                        layout: 'fitColumns',
+                        pagination: 'local',
+                        paginationSize: 8,
+                        autoColumns: true,
+                        columns: [
+                            {title: 'id', field: 'id', width: 250},
+                            {title: 'Имя', field: 'name', align: 'left'},
+                            {title: 'Баллы', field: 'score'}
+                        ],
+                    });
+                } else {
+                    tabulator.addRow(games, false);
+                }
+            },
+        });
+    }
+</script>
+</script>
+</body>
+</html>

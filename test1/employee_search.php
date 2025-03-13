@@ -1,6 +1,6 @@
 <?php
 
-function employeeSearch($district)
+function employeeSearch($district): array|string
 {
     $districtId = null;
     $coincArray = [];
